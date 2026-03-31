@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Todo App — DevOps Project</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f11;
+      --surface: #1a1a1f;
+      --surface2: #252530;
+      --border: #2e2e3a;
+      --accent: #7c6af7;
+      --accent2: #f7c26a;
+      --text: #e8e8f0;
+      --muted: #7070a0;
+      --green: #4ade80;
+      --red: #f87171;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+    }
+    /* NAV */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-logo {
+      font-family: 'Space Mono', monospace;
+      font-size: 1rem;
+      color: var(--accent);
+      padding: 1rem 0;
+      margin-right: 2rem;
+      letter-spacing: -.02em;
+    }
+    .nav-logo span { color: var(--accent2); }
+    .nav-link {
+      padding: .9rem 1.1rem;
+      font-size: .88rem;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all .2s;
+      text-decoration: none;
+    }
+    .nav-link:hover { color: var(--text); }
+    .nav-link.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* PAGES */
+    .page { display: none; max-width: 860px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+    .page.active { display: block; }
+
+    /* ── TODOS PAGE ── */
+    .page-header { margin-bottom: 2rem; }
+    .page-header h1 {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: .3rem;
+    }
+    .page-header p { color: var(--muted); font-size: .9rem; }
+
+    .add-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.4rem;
+      margin-bottom: 1.8rem;
+    }
+    .add-card h2 {
+      font-size: .8rem;
+      font-family: 'Space Mono', monospace;
+      color: var(--muted);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .form-row { display: flex; gap: .8rem; flex-wrap: wrap; }
+    input[type="text"], textarea {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .65rem 1rem;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .9rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+    input[type="text"]:focus, textarea:focus { border-color: var(--accent); }
+    input[type="text"] { flex: 1; min-width: 180px; }
+    textarea { width: 100%; resize: vertical; min-height: 70px; }
+    .btn {
+      padding: .65rem 1.4rem;
+      border-radius: 8px;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #6a59e0; transform: translateY(-1px); }
+    .btn-sm {
+      padding: .3rem .75rem;
+      font-size: .8rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all .18s;
+    }
+    .btn-sm:hover { color: var(--text); border-color: var(--muted); }
+    .btn-danger { border-color: var(--red); color: var(--red); }
+    .btn-danger:hover { background: rgba(248,113,113,.12); }
+    .btn-complete { border-color: var(--green); color: var(--green); }
+    .btn-complete:hover { background: rgba(74,222,128,.12); }
+
+    /* FILTER BAR */
+    .filter-bar {
+      display: flex;
+      gap: .5rem;
+      margin-bottom: 1.2rem;
+      align-items: center;
+    }
+    .filter-btn {
+      padding: .35rem .9rem;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: .82rem;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all .18s;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .count-badge {
+      margin-left: auto;
+      font-size: .8rem;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* TODO LIST */
+    .todo-list { display: flex; flex-direction: column; gap: .7rem; }
+    .todo-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      transition: border-color .2s;
+      animation: slideIn .25s ease;
+    }
+    @keyframes slideIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+    .todo-item:hover { border-color: var(--surface2); }
+    .todo-item.done { opacity: .55; }
+    .todo-item.done .todo-title { text-decoration: line-through; color: var(--muted); }
+    .todo-checkbox {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+      margin-top: 2px;
+      cursor: pointer;
+      transition: all .2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .todo-checkbox.checked { background: var(--green); border-color: var(--green); }
+    .todo-checkbox.checked::after { content: '✓'; font-size: .7rem; color: #000; font-weight: 700; }
+    .todo-content { flex: 1; min-width: 0; }
+    .todo-title { font-weight: 500; font-size: .95rem; margin-bottom: .2rem; }
+    .todo-desc { font-size: .82rem; color: var(--muted); margin-bottom: .5rem; }
+    .todo-meta { font-family: 'Space Mono', monospace; font-size: .72rem; color: var(--border); }
+    .todo-actions { display: flex; gap: .4rem; flex-shrink: 0; }
+
+    /* EMPTY */
+    .empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+    }
+    .empty .icon { font-size: 3rem; margin-bottom: 1rem; opacity: .4; }
+
+    /* STATUS */
+    .status-bar {
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 1rem;
+    }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .8rem 1.2rem;
+      flex: 1;
+    }
+    .stat-num { font-family: 'Space Mono', monospace; font-size: 1.4rem; color: var(--accent); font-weight: 700; }
+    .stat-label { font-size: .75rem; color: var(--muted); margin-top: .1rem; }
+
+    /* ── ABOUT PAGE ── */
+    .about-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .about-avatar {
+      width: 72px; height: 72px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .about-name {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: .3rem;
+    }
+    .about-sub { color: var(--muted); font-size: .9rem; margin-bottom: 1.5rem; }
+    .about-fields { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+    .about-field {
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: .9rem 1rem;
+    }
+    .about-field label { font-size: .72rem; font-family: 'Space Mono', monospace; color: var(--accent); letter-spacing: .06em; text-transform: uppercase; display: block; margin-bottom: .3rem; }
+    .about-field span { font-size: .95rem; font-weight: 500; }
+    .about-app-info { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    .about-app-info h3 { font-size: .75rem; font-family: 'Space Mono', monospace; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .8rem; }
+    .tech-tags { display: flex; flex-wrap: wrap; gap: .5rem; }
+    .tech-tag {
+      background: rgba(124,106,247,.15);
+      border: 1px solid rgba(124,106,247,.3);
+      color: var(--accent);
+      padding: .3rem .75rem;
+      border-radius: 20px;
+      font-size: .8rem;
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* ── HEALTH PAGE ── */
+    .health-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 1rem;
+    }
+    .health-status { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+    .health-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); flex-shrink: 0; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.5;} }
+    .health-dot.error { background: var(--red); box-shadow: 0 0 10px var(--red); }
+    .health-text h2 { font-size: 1.1rem; font-weight: 600; }
+    .health-text p { font-size: .85rem; color: var(--muted); }
+    .json-block {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.2rem;
+      font-family: 'Space Mono', monospace;
+      font-size: .82rem;
+      color: var(--accent2);
+      white-space: pre;
+      overflow-x: auto;
+      line-height: 1.7;
+    }
+    .refresh-btn {
+      margin-top: 1rem;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .75rem 1.2rem;
+      font-size: .85rem;
+      display: none;
+      z-index: 999;
+      animation: slideIn .2s ease;
+    }
+    .toast.show { display: block; }
+    .toast.ok { border-color: var(--green); color: var(--green); }
+    .toast.err { border-color: var(--red); color: var(--red); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">todo<span>.</span>app</div>
+  <a class="nav-link active" onclick="showPage('todos', this)">📋 Todos</a>
+  <a class="nav-link" onclick="showPage('about', this)">/about</a>
+  <a class="nav-link" onclick="showPage('health', this)">/health</a>
+</nav>
+
+<!-- ── TODOS PAGE ─────────────────────────────────── -->
+<div class="page active" id="page-todos">
+  <div class="page-header">
+    <h1>// task_manager</h1>
+    <p>Quản lý công việc cá nhân</p>
+  </div>
+
+  <div class="status-bar">
+    <div class="stat"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Tổng số</div></div>
+    <div class="stat"><div class="stat-num" id="stat-done" style="color:var(--green)">0</div><div class="stat-label">Hoàn thành</div></div>
+    <div class="stat"><div class="stat-num" id="stat-pending" style="color:var(--accent2)">0</div><div class="stat-label">Đang chờ</div></div>
+  </div>
+
+  <div class="add-card">
+    <h2>// New Task</h2>
+    <div style="display:flex;flex-direction:column;gap:.7rem">
+      <input type="text" id="input-title" placeholder="Tiêu đề công việc..." />
+      <textarea id="input-desc" placeholder="Mô tả (tùy chọn)..."></textarea>
+      <div><button class="btn btn-primary" onclick="addTodo()">+ Thêm Task</button></div>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="setFilter('all', this)">Tất cả</button>
+    <button class="filter-btn" onclick="setFilter('pending', this)">Chờ xử lý</button>
+    <button class="filter-btn" onclick="setFilter('done', this)">Hoàn thành</button>
+    <span class="count-badge" id="count-label">0 tasks</span>
+  </div>
+
+  <div class="todo-list" id="todo-list">
+    <div class="empty"><div class="icon">📭</div><p>Chưa có task nào</p></div>
+  </div>
+</div>
+
+<!-- ── ABOUT PAGE ─────────────────────────────────── -->
+<div class="page" id="page-about">
+  <div class="page-header">
+    <h1>// about</h1>
+    <p>Thông tin sinh viên & ứng dụng</p>
+  </div>
+  <div class="about-card" id="about-content">
+    <div class="about-avatar">👤</div>
+    <div class="about-name" id="about-name">Đang tải...</div>
+    <div class="about-sub">Sinh viên</div>
+    <div class="about-fields">
+      <div class="about-field">
+        <label>Mã số sinh viên</label>
+        <span id="about-id">—</span>
+      </div>
+      <div class="about-field">
+        <label>Lớp</label>
+        <span id="about-class">—</span>
+      </div>
+      <div class="about-field">
+        <label>Ứng dụng</label>
+        <span id="about-app">—</span>
+      </div>
+      <div class="about-field">
+        <label>Phiên bản</label>
+        <span id="about-version">—</span>
+      </div>
+    </div>
+    <div class="about-app-info">
+      <h3>// tech stack</h3>
+      <div class="tech-tags">
+        <span class="tech-tag">Node.js</span>
+        <span class="tech-tag">Express</span>
+        <span class="tech-tag">MySQL</span>
+        <span class="tech-tag">Docker</span>
+        <span class="tech-tag">Docker Compose</span>
+        <span class="tech-tag">HTML/CSS/JS</span>
+        <span class="tech-tag">Nginx</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── HEALTH PAGE ─────────────────────────────────── -->
+<div class="page" id="page-health">
+  <div class="page-header">
+    <h1>// health_check</h1>
+    <p>GET /health — kiểm tra trạng thái hệ thống</p>
+  </div>
+  <div class="health-card">
+    <div class="health-status">
+      <div class="health-dot" id="health-dot"></div>
+      <div class="health-text">
+        <h2 id="health-title">Đang kiểm tra...</h2>
+        <p id="health-sub">Gọi đến backend /health endpoint</p>
+      </div>
+    </div>
+    <div class="json-block" id="health-json">Đang tải...</div>
+    <button class="btn btn-primary refresh-btn" onclick="checkHealth()">↻ Kiểm tra lại</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = window.location.hostname === 'localhost'
+    ? 'http://localhost:3000'
+    : 'http://localhost:3000'; // update if needed
+
+  let todos = [];
+  let filter = 'all';
+
+  // ── PAGE NAV ──────────────────────────────────────
+  function showPage(name, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    el.classList.add('active');
+    if (name === 'about') loadAbout();
+    if (name === 'health') checkHealth();
+  }
+
+  // ── TOAST ─────────────────────────────────────────
+  function toast(msg, type='ok') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + type;
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  // ── TODOS ─────────────────────────────────────────
+  async function loadTodos() {
+    try {
+      const res = await fetch(API + '/todos');
+      const data = await res.json();
+      todos = data.data || [];
+      renderTodos();
+    } catch(e) {
+      toast('Không thể kết nối backend', 'err');
+    }
+  }
+
+  function renderTodos() {
+    const list = document.getElementById('todo-list');
+    let filtered = todos;
+    if (filter === 'done') filtered = todos.filter(t => t.completed);
+    if (filter === 'pending') filtered = todos.filter(t => !t.completed);
+
+    const done = todos.filter(t => t.completed).length;
+    document.getElementById('stat-total').textContent = todos.length;
+    document.getElementById('stat-done').textContent = done;
+    document.getElementById('stat-pending').textContent = todos.length - done;
+    document.getElementById('count-label').textContent = filtered.length + ' tasks';
+
+    if (filtered.length === 0) {
+      list.innerHTML = '<div class="empty"><div class="icon">📭</div><p>Không có task nào</p></div>';
+      return;
+    }
+
+    list.innerHTML = filtered.map(t => `
+      <div class="todo-item ${t.completed ? 'done' : ''}" id="todo-${t.id}">
+        <div class="todo-checkbox ${t.completed ? 'checked' : ''}" onclick="toggleTodo(${t.id}, ${!t.completed})"></div>
+        <div class="todo-content">
+          <div class="todo-title">${escHtml(t.title)}</div>
+          ${t.description ? `<div class="todo-desc">${escHtml(t.description)}</div>` : ''}
+          <div class="todo-meta">${new Date(t.created_at).toLocaleString('vi-VN')}</div>
+        </div>
+        <div class="todo-actions">
+          <button class="btn-sm btn-complete" onclick="toggleTodo(${t.id}, ${!t.completed})">${t.completed ? 'Mở lại' : '✓ Done'}</button>
+          <button class="btn-sm btn-danger" onclick="deleteTodo(${t.id})">Xoá</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function setFilter(f, el) {
+    filter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    renderTodos();
+  }
+
+  async function addTodo() {
+    const title = document.getElementById('input-title').value.trim();
+    const desc  = document.getElementById('input-desc').value.trim();
+    if (!title) { toast('Vui lòng nhập tiêu đề', 'err'); return; }
+    try {
+      const res = await fetch(API + '/todos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description: desc })
+      });
+      const data = await res.json();
+      if (data.success) {
+        todos.unshift(data.data);
+        renderTodos();
+        document.getElementById('input-title').value = '';
+        document.getElementById('input-desc').value = '';
+        toast('✓ Đã thêm task');
+      }
+    } catch(e) { toast('Lỗi kết nối', 'err'); }
+  }
+
+  async function toggleTodo(id, completed) {
+    try {
+      const res = await fetch(API + '/todos/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completed })
+      });
+      const data = await res.json();
+      if (data.success) {
+        const idx = todos.findIndex(t => t.id === id);
+        if (idx !== -1) todos[idx] = data.data;
+        renderTodos();
+        toast(completed ? '✓ Đã hoàn thành' : '↩ Đã mở lại');
+      }
+    } catch(e) { toast('Lỗi cập nhật', 'err'); }
+  }
+
+  async function deleteTodo(id) {
+    if (!confirm('Xóa task này?')) return;
+    try {
+      const res = await fetch(API + '/todos/' + id, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        todos = todos.filter(t => t.id !== id);
+        renderTodos();
+        toast('Đã xóa task');
+      }
+    } catch(e) { toast('Lỗi xóa', 'err'); }
+  }
+
+  // ── ABOUT ─────────────────────────────────────────
+  async function loadAbout() {
+    try {
+      const res = await fetch(API + '/about');
+      const d = await res.json();
+      document.getElementById('about-name').textContent = d.student_name;
+      document.getElementById('about-id').textContent = d.student_id;
+      document.getElementById('about-class').textContent = d.class;
+      document.getElementById('about-app').textContent = d.app;
+      document.getElementById('about-version').textContent = d.version;
+    } catch(e) {
+      document.getElementById('about-name').textContent = 'Không thể kết nối backend';
+    }
+  }
+
+  // ── HEALTH ────────────────────────────────────────
+  async function checkHealth() {
+    const dot = document.getElementById('health-dot');
+    const title = document.getElementById('health-title');
+    const sub = document.getElementById('health-sub');
+    const json = document.getElementById('health-json');
+    dot.className = 'health-dot';
+    title.textContent = 'Đang kiểm tra...';
+    json.textContent = 'Đang tải...';
+    try {
+      const t0 = Date.now();
+      const res = await fetch(API + '/health');
+      const ms = Date.now() - t0;
+      const data = await res.json();
+      dot.className = 'health-dot';
+      title.textContent = 'Backend đang hoạt động ✓';
+      sub.textContent = `Response time: ${ms}ms`;
+      json.textContent = JSON.stringify(data, null, 2);
+    } catch(e) {
+      dot.className = 'health-dot error';
+      title.textContent = 'Không kết nối được backend';
+      sub.textContent = e.message;
+      json.textContent = JSON.stringify({ status: 'error', message: e.message }, null, 2);
+    }
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // Init
+  loadTodos();
+</script>
+</body>
+</html>
