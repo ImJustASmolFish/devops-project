@@ -475,15 +475,15 @@
     }
 
     list.innerHTML = filtered.map(t => `
-      <div class="todo-item ${t.completed ? 'done' : ''}" id="todo-${t.id}">
-        <div class="todo-checkbox ${t.completed ? 'checked' : ''}" onclick="toggleTodo(${t.id}, ${!t.completed})"></div>
+      <div class="todo-item ${t.completed == 1 ? 'done' : ''}" id="todo-${t.id}">
+        <div class="todo-checkbox ${t.completed == 1 ? 'checked' : ''}" onclick="toggleTodo(${t.id}, ${t.completed == 1 ? 0 : 1})"></div>
         <div class="todo-content">
           <div class="todo-title">${escHtml(t.title)}</div>
           ${t.description ? `<div class="todo-desc">${escHtml(t.description)}</div>` : ''}
           <div class="todo-meta">${new Date(t.created_at).toLocaleString('vi-VN')}</div>
         </div>
         <div class="todo-actions">
-          <button class="btn-sm btn-complete" onclick="toggleTodo(${t.id}, ${!t.completed})">${t.completed ? 'Mở lại' : '✓ Done'}</button>
+          <button class="btn-sm btn-complete" onclick="toggleTodo(${t.id}, ${t.completed == 1 ? 0 : 1})">${t.completed == 1 ? 'Mở lại' : '✓ Done'}</button>
           <button class="btn-sm btn-danger" onclick="deleteTodo(${t.id})">Xoá</button>
         </div>
       </div>

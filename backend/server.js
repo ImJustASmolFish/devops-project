@@ -100,20 +100,39 @@ app.post('/todos', async (req, res) => {
 
 // PUT /todos/:id  — cập nhật todo
 app.put('/todos/:id', async (req, res) => {
-  const { title, description, completed } = req.body;
+  let { title, description, completed } = req.body;
+
   try {
     await pool.execute(
-      'UPDATE todos SET title = COALESCE(?, title), description = COALESCE(?, description), completed = COALESCE(?, completed) WHERE id = ?',
-      [title, description, completed !== undefined ? completed : null, req.params.id]
+      `UPDATE todos 
+       SET 
+         title = COALESCE(?, title),
+         description = COALESCE(?, description),
+         completed = COALESCE(?, completed)
+       WHERE id = ?`,
+      [
+        title ?? null,                         
+        description ?? null,                  
+        completed !== undefined ? Number(completed) : null,
+        req.params.id
+      ]
     );
-    const [rows] = await pool.execute('SELECT * FROM todos WHERE id = ?', [req.params.id]);
-    if (rows.length === 0) return res.status(404).json({ success: false, message: 'Not found' });
+
+    const [rows] = await pool.execute(
+      'SELECT * FROM todos WHERE id = ?',
+      [req.params.id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Not found' });
+    }
+
     res.json({ success: true, data: rows[0] });
+
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
-
 // DELETE /todos/:id
 app.delete('/todos/:id', async (req, res) => {
   try {
@@ -130,4 +149,4 @@ initDB().then(() => {
   app.listen(PORT, () => {
     console.log(`🚀 ${APP_NAME} running on port ${PORT}`);
   });
-});
+}); 
